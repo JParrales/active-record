@@ -17,7 +17,12 @@ class Product < ApplicationRecord
     after_save :send_notification
     after_save :push_notification, if: :discount?
 
-    def total
+    validates :title, presence: {message: 'Es necesario definir un valor para el titulo'}
+    validates :code, presence: {message: 'Es necesario definir un valor para el codigo'}
+
+    validates :code, uniqueness: {message: 'El codigo %{value} se encuentra en uso'}
+
+    def tota
         self.price *3500
     end
 
@@ -26,7 +31,7 @@ class Product < ApplicationRecord
     end
 
     private 
-    
+
     def validate_product
         puts "\n\n\n>>> Un nuevo producto será añadido a almacen"
     end
