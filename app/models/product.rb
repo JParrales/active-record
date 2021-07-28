@@ -13,8 +13,8 @@
 class Product < ApplicationRecord
 
     #save
-    before_save :validate_product
-    after_save :send_notification
+    before_create :validate_product
+    after_create :send_notification
     after_save :push_notification, if: :discount?
 
     validates :title, presence: {message: 'Es necesario definir un valor para el titulo'}
@@ -22,22 +22,28 @@ class Product < ApplicationRecord
 
     validates :code, uniqueness: {message: 'El codigo %{value} se encuentra en uso'}
 
-    def tota
-        self.price *3500
+    validates_with ProductValidator
+
+    scope :available, -> (min=1){ where('stock >= ?', min) }
+    scope :order_price, -> { order('price DESC')}
+    scope :available_and_order_price_desc, -> { availabe.order_price}
+
+    def total
+        self.price * 3500
     end
 
     def discount?
         self.total < 50000
     end
 
+    def self.top_5_available
+        self.available.order_price.limit(5).select(:title, :code)
+    end
+
     private 
 
     def validate_product
         puts "\n\n\n>>> Un nuevo producto será añadido a almacen"
-    end
-    
-    def total
-        self.price*3500
     end
 
     def send_notification
